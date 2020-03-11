@@ -5,19 +5,65 @@ const Posts = require('./postDb');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  // do your magic!
+  Posts.get()
+    .then(posts => {
+      res.status(200).json(posts);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post information could not be retrieved" });
+    });
 });
 
 router.get('/:id', validatePostId, (req, res) => {
-  // do your magic!
+  Posts.getById(req.params.id)
+    .then(post => {
+      res.status(200).json(post);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post information could not be retrieved" });
+    });
 });
 
 router.delete('/:id', validatePostId, (req, res) => {
-  // do your magic!
+  Posts.remove(req.params.id)
+    .then(count => {
+      if (count > 0) {
+        Posts.get()
+          .then(posts => {
+            res.status(200).json(posts);
+          })
+          .catch(error => {
+            console.log(error);
+            res.status(500).json({ message: "The post information could not be retrieved" });
+          });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post could not be deleted" });
+    });
 });
 
 router.put('/:id', validatePostId, (req, res) => {
-  // do your magic!
+  Posts.update(req.params.id, req.body)
+    .then(count => {
+      if (count === 1) {
+        Posts.get()
+          .then(posts => {
+            res.status(200).json(posts);
+          })
+          .catch(error => {
+            console.log(error);
+            res.status(500).json({ message: "The post information could not be retrieved" });
+          });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post could not be updated" });
+    });
 });
 
 // Custom Middleware

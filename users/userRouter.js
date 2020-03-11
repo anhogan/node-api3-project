@@ -64,6 +64,7 @@ router.get('/:id', validateUserId, (req, res) => {
     })
     .catch(error => {
       console.log(error);
+      res.status(500).json({ message: "The user information could not be retrieved" });
     });
 });
 
@@ -114,7 +115,7 @@ router.put('/:id', validateUserId, validateUser, (req, res) => {
     })
     .catch(error => {
       console.log(error);
-      res.status(500).json({ message: "The user information could not be retrieved" });
+      res.status(500).json({ message: "The user could not be updated" });
     });
 });
 
