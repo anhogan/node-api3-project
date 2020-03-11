@@ -73,8 +73,6 @@ function validatePostId(req, res, next) {
   .then(post => {
     if (!post) {
       res.status(400).json({ message: "Invalid post ID" });
-    } else {
-      res.status(200).json(post);
     };
   })
   .catch(error => {
