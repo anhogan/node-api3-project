@@ -6,7 +6,7 @@ const Posts = require('../posts/postDb');
 
 const router = express.Router();
 
-router.post('/', validateUser, (req, res) => {
+router.post('/', validateUser, uniqueUsername, (req, res) => {
   Users.insert(req.body)
     .then(user => {
       if (user) {
@@ -134,7 +134,7 @@ function validateUserId(req, res, next) {
     });
 
   next();
-}
+};
 
 function validateUser(req, res, next) {
   if (Object.keys(req.body).length === 0) {
@@ -144,7 +144,7 @@ function validateUser(req, res, next) {
   };
 
   next();
-}
+};
 
 function validatePost(req, res, next) {
   if (Object.keys(req.body).length === 0) {
@@ -152,6 +152,25 @@ function validatePost(req, res, next) {
   } else if (!req.body.text) {
     res.status(400).json({ message: "Missing required text field" });
   };
+
+  next();
+};
+
+function uniqueUsername(req, res, next) {
+  Users.get()
+    .then(users => {
+      console.log(users);
+      const taken = users.filter((user) => {
+        return user.name === req.body.name
+      });
+      console.log(taken);
+      if (taken.length > 0) {
+        res.status(400).json({ message: "That name is already in use, please choose another one" });
+      } 
+    })
+    .catch(error => {
+      console.log(error);
+    });
 
   next();
 }
