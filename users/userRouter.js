@@ -1,47 +1,159 @@
 const express = require('express');
 
+const Users = require('./userDb');
+
+const Posts = require('../posts/postDb');
+
 const router = express.Router();
 
-router.post('/', (req, res) => {
-  // do your magic!
+router.post('/', validateUser, (req, res) => {
+  Users.insert(req.body)
+    .then(user => {
+      if (user) {
+      Users.get()
+        .then(users => {
+          res.status(201).json(users);
+        })
+        .catch(error => {
+          console.log(error);
+          res.status(500).json({ message: "The user information could not be retrieved" });
+        });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user could not be created" });
+    });
 });
 
-router.post('/:id/posts', (req, res) => {
-  // do your magic!
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+  Posts.insert(req.body)
+    .then(post => {
+      if (post) {
+        Users.getUserPosts(req.params.id)
+          .then(posts => {
+            res.status(201).json(posts);
+          })
+          .catch(error => {
+            console.log(error);
+            res.status(500).json({ message: "The post information could not be retrieved" });
+          });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post information could not be retrieved" });
+    });
 });
 
 router.get('/', (req, res) => {
-  // do your magic!
+  Users.get()
+    .then(users => {
+      res.status(200).json(users);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user information could not be retrieved" });
+    });
 });
 
-router.get('/:id', (req, res) => {
-  // do your magic!
+router.get('/:id', validateUserId, (req, res) => {
+  Users.getById(req.params.id)
+    .then(user => {
+      res.status(200).json(user);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user information could not be retrieved" });
+    });
 });
 
-router.get('/:id/posts', (req, res) => {
-  // do your magic!
+router.get('/:id/posts', validateUserId, (req, res) => {
+  Users.getUserPosts(req.params.id)
+    .then(posts => {
+      res.status(200).json(posts);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The post information could not be retrieved" });
+    });
 });
 
-router.delete('/:id', (req, res) => {
-  // do your magic!
+router.delete('/:id', validateUserId, (req, res) => {
+  Users.remove(req.params.id)
+    .then(count => {
+      if (count > 0) {
+        Users.get()
+          .then(users => {
+            res.status(200).json(users);
+          })
+          .catch(error => {
+            console.log(error);
+            res.status(500).json({ message: "The user information could not be retrieved" });
+          });
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user could not be removed" });
+    });
 });
 
-router.put('/:id', (req, res) => {
-  // do your magic!
+router.put('/:id', validateUserId, validateUser, (req, res) => {
+  Users.update(req.params.id, req.body)
+    .then(count => {
+      if (count === 1) {
+        Users.get()
+          .then(users => {
+            res.status(200).json(users);
+          })
+          .catch(error => {
+            console.log(error);
+            res.status(500).json({ message: "The user information could not be retrieved" });
+          });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user could not be updated" });
+    });
 });
 
-//custom middleware
+// Custom Middleware
 
 function validateUserId(req, res, next) {
-  // do your magic!
+  Users.getById(req.params.id)
+    .then(user => {
+      if (!user) {
+        res.status(400).json({ message: "Invalid user ID" });
+      };
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({ message: "The user information could not be retreived" })
+    });
+
+  next();
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ message: "Missing user data" });
+  } else if (!req.body.name) {
+    res.status(400).json({ message: "Missing required name field" });
+  };
+
+  next();
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+  if (Object.keys(req.body).length === 0) {
+    res.status(400).json({ message: "Missing post data" });
+  } else if (!req.body.text) {
+    res.status(400).json({ message: "Missing required text field" });
+  };
+
+  next();
 }
 
 module.exports = router;
