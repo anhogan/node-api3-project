@@ -27,7 +27,9 @@ router.post('/', validateUser, uniqueUsername, (req, res) => {
 });
 
 router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
-  Posts.insert(req.body)
+  const userId = { ...req.body, user_id: req.params.id };
+
+  Posts.insert(userId)
     .then(post => {
       if (post) {
         Users.getUserPosts(req.params.id)
